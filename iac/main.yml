@@ -4,6 +4,7 @@
 
   roles:
     - secure_conf # Apply basic configuration
+    - minecraft_server
 #    - vpn # VPN configuration
 
   handlers:
