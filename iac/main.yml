@@ -1,0 +1,12 @@
+- name: Ansible playbook that automates secure configuration and VPN
+  hosts: weynas-server
+  become: true
+
+  roles:
+    - secure_conf # Apply basic configuration
+#    - vpn # VPN configuration
+
+  handlers:
+    - name: Apply sysctl configuration
+      ansible.builtin.command:
+        cmd: sysctl --system
