@@ -6,8 +6,3 @@
     - secure_conf # Apply basic configuration
     - minecraft_server
 #    - vpn # VPN configuration
-
-  handlers:
-    - name: Apply sysctl configuration
-      ansible.builtin.command:
-        cmd: sysctl --system
