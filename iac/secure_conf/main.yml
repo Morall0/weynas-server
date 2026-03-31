@@ -1,8 +1,7 @@
-- name: Ansible playbook that automates secure configuration and VPN
+- name: Ansible playbook that automates secure configuration
   hosts: weynas-server
   become: true
 
   roles:
     - secure_conf # Apply basic configuration
-    - minecraft_server
 #    - vpn # VPN configuration

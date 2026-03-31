@@ -1,0 +1,86 @@
+# Installation of minecraft-server
+
+- name: Verify that podman is installed
+  ansible.builtin.apt:
+    name: podman
+    state: present
+    update_cache: true
+
+- name: Create server directory
+  ansible.builtin.file:
+    path: /home/minecraft-srv/servers/maicraft
+    state: directory
+    mode: '0755'
+    owner: minecraft-srv
+    group: minecraft-srv
+
+- name: Copy start.sh script
+  ansible.builtin.copy:
+    src: start.sh
+    dest: /home/minecraft-srv/servers/maicraft/
+    mode: '0755'
+    owner: minecraft-srv
+    group: minecraft-srv
+  notify: Restart minecraft-server service (executes run.sh)
+
+- name: Download minecraft-server installer
+  ansible.builtin.get_url:
+    url: https://maven.neoforged.net/releases/net/neoforged/neoforge/21.11.25-beta/neoforge-21.11.25-beta-installer.jar
+    dest: /home/minecraft-srv/servers/maicraft/
+    mode: '0755'
+    owner: minecraft-srv
+    group: minecraft-srv
+  notify: Restart minecraft-server service (executes run.sh)
+
+- name: Configure podman container and quadlet file
+  become: true
+  become_user: minecraft-srv
+  containers.podman.podman_container:
+    name: minecraft-server
+    image: docker.io/library/eclipse-temurin:21-jre-jammy
+    volume: 
+      - /home/minecraft-srv/servers/maicraft:/data
+    workdir: /data
+    publish: 
+      - 25565:25565/tcp
+    memory: 9g
+    command: /data/start.sh
+    state: quadlet
+    quadlet_options:
+      - |
+        [Service]
+        Restart=always
+        RestartSec=10
+        MemoryMax=9G
+        MemoryHigh=8.5G
+        OOMScoreAdjust=-900
+      - |
+        [Install]
+        WantedBy=default.target
+  notify: Reload systemd user daemon (Root Proxy Method)
+
+- name: Copy the accepted eula
+  ansible.builtin.copy:
+    src: eula.txt
+    dest: /home/minecraft-srv/servers/maicraft/
+    mode: '0755'
+    owner: minecraft-srv
+    group: minecraft-srv
+
+# - name: Start and enable minecraft-server service (executes run.sh)
+#   become: true
+#   become_user: minecraft-srv
+#   ansible.builtin.systemd:
+#     scope: user
+#     name: minecraft-server.service
+#     state: started
+#     enabled: true
+
+# - name: Allow Minecraft port in nftables (IPv4/IPv6)
+#   ansible.builtin.lineinfile:
+#     path: /etc/nftables.conf
+#     regexp: 'tcp dport 25565 accept'
+#     insertafter: 'chain input \{'
+#     line: '        tcp dport 25565 accept'
+#     state: present
+#   notify: Reload nftables

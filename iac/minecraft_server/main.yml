@@ -1,0 +1,30 @@
+- name: Minecraft server
+  hosts: weynas-server
+  become: true
+
+  roles:
+    - admin-user # Creation and configuration of minecraft-server user
+    - server # Installation of minecraft-server on container
+    # - geyser # Installation of GeyserMC standalone on container
+    # - playit # Installation of playit service
+
+  handlers:
+  - name: Reload systemd user daemon (Root Proxy Method)
+    become: true
+    ansible.builtin.command:
+      cmd: systemctl --user -M minecraft-srv@.host daemon-reload
+
+  - name: Restart minecraft-server service (executes run.sh)
+    become: true
+    become_user: minecraft-srv
+    ansible.builtin.systemd:
+      scope: user
+      name: minecraft-server.service
+      state: restarted
+      enabled: true
+
+  # - name: Reload nftables
+  #   become: true
+  #   ansible.builtin.service:
+  #     name: nftables
+  #     state: reloaded

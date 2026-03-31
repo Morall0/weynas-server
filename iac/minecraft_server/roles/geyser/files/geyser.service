@@ -1,0 +1,20 @@
+[Unit]
+Description=GeyserMC Standalone (user service)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/geyser/geyser
+ExecStart=/home/geyser/geyser/geyser.sh
+Restart=on-failure
+RestartSec=5
+OOMScoreAdjust=-500
+MemoryMax=2.5G
+MemoryHigh=1500M
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

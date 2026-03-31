@@ -1,0 +1,11 @@
+- name: Verify that playit is installed
+  ansible.builtin.script: playit.gg-installer.sh
+  args:
+    creates: /opt/playit/playit
+
+- name: Verify playit is started and enabled
+  ansible.builtin.systemd:
+    name: playit.service
+    state: started
+    enabled: true
+  notify: Reload systemd user daemon (Root Proxy Method)

@@ -1,0 +1,83 @@
+- name: Ensure that geyser user exists
+  ansible.builtin.user:
+    name: geyser
+    shell: /bin/bash
+    password: '!'
+    password_lock: true
+
+- name: Enable lingering for geyser user
+  ansible.builtin.command: loginctl enable-linger geyser
+  changed_when: false
+
+- name: Create user's container systemd directory
+  ansible.builtin.file:
+    path: /home/geyser/.config/systemd/user
+    state: directory
+    mode: '0755'
+    owner: geyser
+    group: geyser
+
+- name: Create GeyserMC directory
+  ansible.builtin.file:
+    path: /home/geyser/geyser
+    state: directory
+    mode: '0755'
+    owner: geyser
+    group: geyser
+
+- name: Verify that jre is installed
+  ansible.builtin.apt:
+    name: openjdk-21-jre-headless
+    state: present
+    update_cache: true
+
+- name: Download GeyserMC installer
+  ansible.builtin.get_url:
+    url: https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/standalone
+    dest: /home/geyser/geyser/Geyser-Standalone.jar
+    mode: '0755'
+    owner: geyser
+    group: geyser
+
+- name: Copy key.pem
+  ansible.builtin.copy:
+    remote_src: true
+    src: /home/minecraft-srv/servers/maicraft/config/floodgate/key.pem
+    dest: /home/geyser/geyser/
+    mode: '0644'
+    owner: geyser
+    group: geyser
+
+- name: Copy config.yml
+  ansible.builtin.copy:
+    src: config.yml
+    dest: /home/geyser/geyser/
+    mode: '0644'
+    owner: geyser
+    group: geyser
+
+- name: Copy geyser.sh script
+  ansible.builtin.copy:
+    src: geyser.sh
+    dest: /home/geyser/geyser/
+    mode: '0755'
+    owner: geyser
+    group: geyser
+
+- name: Copy service file
+  ansible.builtin.copy:
+    src: geyser.service
+    dest: /home/geyser/.config/systemd/user/
+    mode: '0644'
+    owner: geyser
+    group: geyser
+
+- name: Start and enable geyser.service
+  become: true
+  become_user: geyser
+  ansible.builtin.systemd:
+    scope: user
+    name: geyser.service
+    state: started
+    enabled: true
+  notify: Restart minecraft-server.service

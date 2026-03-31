@@ -1,0 +1,8 @@
+- name: Restart minecraft-server.service
+  become: true
+  become_user: minecraft-srv
+  ansible.builtin.systemd:
+    scope: user
+    name: minecraft-server.service
+    state: restarted
+    enabled: true
